@@ -21,8 +21,6 @@
 % 2D FFT of surface topography could be seen by:
 % imagesc(1+log10(abs(PSD.Hm)))
 
-% The original version can be found in the following link: 
-% https://www.mathworks.com/matlabcentral/fileexchange/54297-radially-averaged-surface-roughness-topography-power-spectrum-psd
 % =========================================================================
 % make the size an even number (For PSD)
 
@@ -30,59 +28,14 @@
 PixelWidth = 0.5;
 
 
-%% read the tif file for the Wonderland of Rocks and its joint sets 
-% z = imread('small_portion_PSD.tif'); % first figure 
-% z = imread('mountains_part_WoR.tif');
-% z = imread('random_part_WoR.tif'); % third figure
-% z = imread('another2_random_part_WoR.tif'); 
-% z = imread('another_small_portion.tif'); 
-% z = imread('another_random_part_WoR.tif'); 
-% z = imread('mountains2_part_WoR.tif');
-z = imread('joint_sets2_WoR.tif'); 
-% z = imread('WoR_Joint_Set.tif'); 
-% z = imread('distinctRotatedCross.tif'); 
-% z = imread('emptyLand.tif'); 
-
-%% read the tif file for the Canyonlands and its grabens 
-
-% z = imread('CanyonLandDEM1.tif'); 
-% z = imread('CroppedCanyonLandDEM1.tif'); % second figure
-% z = imread('CanyonLandDEM2.tif'); 
-% z = imread('CroppedCanyonLandDEM2.tif');
-% z = imread('CanyonLandDEM3.tif'); 
-% z = imread('CroppedCanyonLandDEM3.tif'); 
+%% read the DEM file
+z = imread('NAME OF FILE.tif'); 
 
 % this is for generating two diffraction grates in each corner
 % z = diffraction_2D_Ver2; 
 
-% z = tifDEMConverter("viz.USGS10m_hillshade.tif");
-
-% z = tifDEMConverter("grabensCanyonLand1.tif");
-% z = tifDEMConverter("grabensCanyonLand2.tif");
-% z = single(z); 
-
-
 z = elevationRemover(z, -9999); % ONLY do this when you want
                                 % to remove certain elevation
-
-% z = subMatrix; %REMEMBER TO RUN THE rotatingDEM SCRIPT BEFOREHAND! 
-
-% z = circularWindow(z); % applying the circular padding
-% z = rectangularWindow(z); % applying the rectangular padding 
-
-
-% x = size(z,1); 
-% y = size(z,2); 
-% 
-% for i = 1:x    
-%     for j = 1:y  
-%         if z(i,j) > 1355
-%             z(i,j) = 1355; 
-%         elseif z(i,j) < 1350
-%             z(i,j) = 1350; 
-%         end 
-%     end
-% end
 
 figure(1) 
 imagesc(z)
@@ -214,14 +167,8 @@ TwoDimPSD = 1+log10(abs(PSD.Hm));
 % this controls how much noise you want the 2D PSD to have the higher the 
 % threshold, less pixel intensities will show up.
 
-% threshold = 4.9; % use for joint sets 
-% threshold = 5.7; % use for grabens 
-% threshold = 5.1; % use for grabens (shows more wavevectors)
-% threshold = 5.4; 
 % threshold = 0;
-% threshold = 5.5;
-threshold = 6; % use for padding
-% threshold = 6.3;
+threshold = 6; % used for padding
 
 TwoDimPSD(TwoDimPSD < threshold) = 0; % removes the pixel intensity ratio
 
@@ -272,160 +219,3 @@ results = table(q(:), lambda(:), 'VariableNames', {'Wavevector', 'Wavelength'});
 
 peakWavelengths = (2 * pi) ./ q(locs);
 maximaTable = table(q(locs)', pks', peakWavelengths', 'VariableNames', {'Wavevector at Maximum', 'Max PSD Value', 'Wavelength at Maximum'});
-
-
-
-% % =========================================================================
-% % This section outputs a cross section of the 2D PSD 
-% smoothHorizontalCrossSection = TwoDimPSD(541,:); 
-% smoothVerticalCrossSection = TwoDimPSD(:,541); 
-% figure(5)
-% subplot(2,2,1)
-% plot(smoothHorizontalCrossSection);
-% title('Horizontal Cross Section')
-% subplot(2,2,2)
-% plot(smoothVerticalCrossSection); 
-% title('Vertical Cross Section') 
-% subplot(2,2,3)
-% inverse1 = ifft(smoothHorizontalCrossSection);
-% plot(inverse1);
-% subplot(2,2,4) 
-% inverse2 = ifft(smoothVerticalCrossSection);
-% plot(inverse2);
-% 
-% % figure(6)
-% % subplot(1,2,1)
-% % plot(fft(inverse1));
-% % subplot(1,2,2)
-% % plot(fft(inverse2));
-% 
-% 
-% 
-% % =========================================================================
-% % Find the PSD of a grid that contains one pixel 
-% onePxGrid = zeros(size(z), 'single');
-% onePxGrid((size(z,1)/2),(size(z,2)/2)) = 1; 
-% 
-% halfSquareLength = 199;
-% onePxGrid((size(z,1)/2)-halfSquareLength:(size(z,1)/2)+halfSquareLength, (size(z,2)/2)-halfSquareLength:(size(z,2)/2)+halfSquareLength) = 2;
-% 
-% figure(7)
-% imagesc(onePxGrid)
-% colormap turbo
-% colorbar
-% % clim([0 3]);
-% daspect([1 1 1])
-% 
-% % onePxPSD = abs(fftshift(fft2(onePxGrid)));
-% onePxPSD = psd_2D_function(onePxGrid); 
-% 
-% figure(8)
-% imagesc(onePxPSD)
-% xlabel('Wavevector, q_{x} (m^{-1})')
-% ylabel('Wavevector, q_{y} (m^{-1})')
-% colormap turbo
-% colorbar
-% % clim([0 3]);
-% daspect([1 1 1])
-% 
-% onePxCross = zeros(size(onePxPSD)); 
-% onePxCross(size(onePxCross)/2,:) = onePxPSD(size(onePxPSD)/2,:); 
-% onePxCross(:,size(onePxCross)/2) = onePxPSD(:,size(onePxPSD)/2); 
-% magnitude = (max(TwoDimPSD,[],"all")/max(onePxPSD,[],"all"));
-% onePxCross = onePxCross .* magnitude; 
-% 
-% 
-% 
-% 
-% 
-% % =========================================================================
-% % Smooth the TwoDimPSD with some smooth function
-% % smoothTwoDimPSD = smoothdata2(TwoDimPSD); 
-% % smoothTwoDimPSD = smoothTwoDimPSD .* (9.844/6.95); 
-% smoothTwoDimPSD = smoothdata2(TwoDimPSD,"movmean", 9);
-% % try reducing the window to 9, so smoothdata2(TwoDimPSD,movmedian,9)
-% 
-% % "movmean" — Average over each 2-D window of A. This method is useful for 
-% %  reducing periodic trends in data. THIS IS DEFAULT FOR THE FUNCTION 
-% % smoothdata2
-% 
-% % "movmedian" — Median over each 2-D window of A. This method is useful for
-% % reducing periodic trends in data when outliers are present.
-% 
-% % "gaussian" — Gaussian-weighted average over each 2-D window of A.
-% 
-% % "lowess" — Linear regression over each 2-D window of A. This method can 
-% % be computationally expensive but results in fewer discontinuities.
-% 
-% % "loess" — Quadratic regression over each 2-D window of A. This method is 
-% % slightly more computationally expensive than "lowess".
-% 
-% % "sgolay" — Savitzky-Golay filter, which smooths according to a quadratic 
-% % polynomial that is fitted over each 2-D window of A. This method can be
-% % more effective than other methods when the data varies rapidly.
-% 
-% figure(9)
-% imagesc(smoothTwoDimPSD)
-% colorbar
-% clim([0 9]);
-% daspect([1 1 1])
-% 
-% % Take the two cross sections
-% % smoothHorizontalCrossSection = smoothTwoDimPSD(541,:); 
-% % smoothVerticalCrossSection = smoothTwoDimPSD(:,541); 
-% % figure(10)
-% % subplot(1,2,1)
-% % plot(smoothHorizontalCrossSection);
-% % title('Horizontal Cross Section')
-% % subplot(1,2,2)
-% % plot(smoothVerticalCrossSection); 
-% % title('Vertical Cross Section') 
-% 
-% 
-% 
-% % =========================================================================
-% % Apply basic arithmetic principles 
-% % smoothFinalResult = TwoDimPSD - smoothTwoDimPSD; 
-% smoothFinalResult = TwoDimPSD - onePxCross; 
-% 
-% threshold2 = 0;
-% smoothFinalResult(smoothFinalResult <= threshold2) = NaN;
-% 
-% figure(11)
-% imagesc(smoothFinalResult)
-% colorbar
-% % clim([0 9]);
-% daspect([1 1 1])
-% 
-% 
-% smoothHorizontalCrossSection = smoothFinalResult(541,:); 
-% smoothVerticalCrossSection = smoothFinalResult(:,541); 
-% figure(12)
-% subplot(1,2,1)
-% plot(smoothHorizontalCrossSection);
-% title('Horizontal Cross Section')
-% subplot(1,2,2)
-% plot(smoothVerticalCrossSection); 
-% title('Vertical Cross Section') 
-% 
-% 
-% 
-% % =========================================================================
-% % Graph the PSD in a 3D manner
-% figure(13) 
-% surf(smoothFinalResult) 
-% shading interp % used for removing the gridlines on the graph
-% 
-% % =========================================================================
-% % Using lowpass function to filter the frequency 
-% % 
-% % lowPassPSD = lowpass(TwoDimPSD,0.01);
-% % 
-% % figure(14) 
-% % imagesc(lowPassPSD)
-% % xlabel('Wavevector, q_{x} (m^{-1})')
-% % ylabel('Wavevector, q_{y} (m^{-1})')
-% % colormap turbo
-% % colorbar
-% % clim([0 9]);
-% % daspect([1 1 1])
